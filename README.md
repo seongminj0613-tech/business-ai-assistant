@@ -56,11 +56,12 @@
 
 ## 👥 팀
 
-| 이름 | GitHub | 담당 |
-|------|--------|------|
-| 정성민 | [@seongminj0613-tech](https://github.com/seongminj0613-tech) | Full Stack |
+| 이름 | 담당 | GitHub |
+|------|------|--------|
+| 정성민 | Full Stack (Mobile / DevOps) | [@seongminj0613-tech](https://github.com/seongminj0613-tech) |
+| 강민수 | Backend | (추후 추가) |
+| 김진영 | Design / UX | (추후 추가) |
 
-> 팀원 정보 추후 업데이트 예정
 
 ## 📚 학습 내용
 
