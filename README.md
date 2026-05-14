@@ -3,6 +3,7 @@
 > 사장님의 통화를 자동으로 요약·분류하고, 예약·주문·문의 등 핵심 정보를 구조화 카드로 보여주는 비즈니스 비서 서비스
 
 [🌐 웹 데모](https://dk1k75g0ji3vw.cloudfront.net) 
+
 [📱 APK 다운로드](https://drive.google.com/file/d/1jJNRF2CCVcCKSpdIPUODjWL6F5exxJ-T/view?usp=sharing)
 
 ---
