@@ -98,7 +98,8 @@
 - axios 1.15
 
 ### ⚙️ Backend
-- AWS Lambda (Python 3.12, 단일 함수 라우터)
+- AWS Lambda (Python 3.12, 기능별 3개 분리 — auth / call / nlp)
+- AWS ElastiCache Redis 7.1 (키워드 캐싱 102ms → 5ms, 토큰 캐싱, 중복 방지)
 - AWS API Gateway (HTTP API)
 - AWS RDS MySQL 8.0 (db.t4g.micro, 프라이빗 서브넷)
 - AWS S3 (Seoul) + SSE-S3 암호화
@@ -109,6 +110,8 @@
 - VPC 3계층 보안그룹 (lambda-sg / rds-sg / endpoint-sg)
 - VPC Endpoint 경유 통신 (Secrets Manager Interface, S3 Gateway)
 - CloudFront (글로벌 CDN)
+- CloudWatch 경보 + Slack 알림 연동
+- CLOVA Webhook 폴링 메커니즘 (5분 주기 자동 복구)
 
 ### 🤖 External AI
 - 네이버 CLOVA Speech (장문 인식, async 모드 + Webhook)
