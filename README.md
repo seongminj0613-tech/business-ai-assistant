@@ -6,7 +6,9 @@
 
 [📱 APK 다운로드](https://drive.google.com/file/d/1jJNRF2CCVcCKSpdIPUODjWL6F5exxJ-T/view?usp=sharing)
 
-[모니터링 대시보드](http://15.165.17.218:3000/public-dashboards/97b5462a12b54bf9b827b07eeee699f4)
+[📊 모니터링 대시보드](http://15.165.17.218:3000/public-dashboards/97b5462a12b54bf9b827b07eeee699f4)
+
+> 📊 위 대시보드는 외부 공개용으로 의도적으로 개방한 Grafana Public Dashboard입니다. 내부 운영 지표(CloudWatch)는 별도 비공개 보관됩니다.
 
 ---
 
@@ -40,6 +42,7 @@
 | 🗂️ **구조화 카드** | 고객명·연락처·일시·인원·메뉴·특이사항 자동 추출 (JSON 스키마 강제) |
 | 🔊 **음성 재생** | 통화 상세에서 ExoPlayer / HTML5 audio로 원본 재생 (presigned URL 10분 만료) |
 | 📊 **카테고리 분류** | 예약·주문·취소·환불·불만·문의·칭찬·긴급 8종 라벨링 |
+| ⚡ **키워드 핫리로드** | ElastiCache Redis 캐싱으로 키워드 사전 무중단 갱신 (102ms → 5ms, 20배 개선) |
 
 ---
 
@@ -56,22 +59,26 @@
          └──────────────────┬───────────────────┘
                             ▼
         ┌─────────────────────────────────────┐
-        │   AWS API Gateway (HTTP API)        │
+        │   AWS API Gateway (REST API)        │
+        │   avrq2kzfp9 · /prod                │
         └─────────────────┬───────────────────┘
                           ▼
         ┌─────────────────────────────────────┐
         │   AWS Lambda (Python, VPC 프라이빗) │
+        │   auth / call / nlp 핸들러 분리     │
         │   - Custom Token 발급 / CRUD        │
         │   - presigned URL 발급              │
         │   - CLOVA 비동기 호출 + Webhook 수신 │
         │   - 룰베이스 NLP + LLM Fallback     │
-        └──┬──────────┬──────────┬────────────┘
-           │ Interface │ Gateway │ VPC 내부
-           ▼ Endpoint  ▼ Endpoint▼
-        ┌────────┐ ┌────────┐ ┌────────┐
-        │Secrets │ │   S3   │ │  RDS   │
-        │Manager │ │ (음성) │ │MySQL 8 │
-        └────────┘ └────────┘ └────────┘
+        └──┬───────┬────────┬────────┬─────────┘
+           │       │        │        │ VPC 내부
+           ▼       ▼        ▼        ▼
+     ┌────────┐┌──────┐┌────────┐┌──────────┐
+     │Secrets ││  S3  ││  RDS   ││ElastiCache│
+     │Manager ││(음성)││MySQL 8 ││  Redis    │
+     └────────┘└──────┘└────────┘└──────────┘
+        Interface  Gateway   VPC 내부   VPC 내부
+        Endpoint   Endpoint
                           │
                           ▼   외부 API (HTTPS)
                 ┌─────────────────────┐
@@ -81,6 +88,8 @@
                 │ Kakao (한국)        │
                 └─────────────────────┘
 ```
+
+> **Redis 역할**: 키워드 사전 핫리로드 캐싱 · Firebase 토큰 캐싱 · 중복 업로드 방지(SET NX 락). 3개 Lambda 핸들러가 동일 클러스터를 공유합니다.
 
 ---
 
@@ -102,7 +111,7 @@
 ### ⚙️ Backend
 - AWS Lambda (Python 3.12, 기능별 3개 분리 — auth / call / nlp)
 - AWS ElastiCache Redis 7.1 (키워드 캐싱 102ms → 5ms, 토큰 캐싱, 중복 방지)
-- AWS API Gateway (HTTP API)
+- AWS API Gateway (REST API, `avrq2kzfp9`)
 - AWS RDS MySQL 8.0 (db.t4g.micro, 프라이빗 서브넷)
 - AWS S3 (Seoul) + SSE-S3 암호화
 - AWS Secrets Manager (DB 자격증명, Firebase Admin SDK)
@@ -135,7 +144,7 @@
 
 ## 🔌 주요 API
 
-진입점: AWS API Gateway HTTP API · 인증: `Authorization: Bearer <Firebase ID Token>`
+진입점: AWS API Gateway REST API (`avrq2kzfp9`, `/prod`) · 인증: `Authorization: Bearer <Firebase ID Token>`
 
 | Method | Path | 설명 | 인증 |
 |--------|------|------|------|
@@ -206,6 +215,7 @@
 | 정성민 | 클라우드 인프라 · Android · 백엔드 Lambda · Web 배포 |
 | 강민수 | 백엔드 |
 | 김진영 | 디자인 / UX |
+| 조영은 | 디자인 |
 
 > 본 메인 README는 정성민이 정리한 통합 문서입니다. 각 영역별 상세는 개별 저장소 README를 참조하세요.
 
@@ -215,6 +225,7 @@
 
 - 풀스택 개발 (Android + Web + Backend)
 - AWS 클라우드 인프라 설계 및 보안 (VPC 3계층 / Endpoint / Secrets Manager)
+- ElastiCache Redis 캐싱 설계 (핫리로드 / 토큰 캐싱 / 분산 락)
 - Firebase Auth + 카카오 OAuth Custom Token 교환 모델
 - STT(CLOVA) + LLM(GPT-4o-mini) 비동기 AI 파이프라인 + Webhook 처리
 - 룰베이스 + LLM 하이브리드 NLP로 LLM 비용 절감 설계
